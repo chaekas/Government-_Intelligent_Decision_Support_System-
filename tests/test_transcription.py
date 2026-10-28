@@ -97,3 +97,33 @@ def test_transcription_failure_returns_422(monkeypatch: pytest.MonkeyPatch) -> N
 def test_transcription_route_is_documented() -> None:
     schema = client.get("/openapi.json").json()
     assert "/api/v1/media/{media_id}/transcribe" in schema["paths"]
+
+
+def test_local_transcription_service_persists_transcript_and_metadata(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    media = _upload_synthetic_wav()
+
+    class FakeModel:
+        def transcribe(self, path: str, **kwargs):
+            assert Path(path).is_file()
+            assert kwargs["language"] == "en"
+            segments = [
+                SimpleNamespace(start=0.0, end=1.2, text=" Synthetic test."),
+                SimpleNamespace(start=1.2, end=2.0, text=" Second sentence."),
+            ]
+            info = SimpleNamespace(duration=2.0, language="en", language_probability=0.98)
+            return iter(segments), info
+
+    monkeypatch.setattr(transcription, "_get_model", lambda model_name: FakeModel())
+    result = transcription.transcribe_media(media["media_id"], language="en")
+
+    assert result["full_text"] == "Synthetic test. Second sentence."
+    assert result["transcription_status"] == "completed"
+    assert len(result["segments"]) == 2
+    assert transcription.get_transcript(media["media_id"]) == result
+
+    metadata_path = transcription.MEDIA_METADATA_DIR / f"{media['media_id']}.json"
+    stored_metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    assert stored_metadata["transcription_status"] == "completed"
+    assert stored_metadata["duration_seconds"] == 2.0
