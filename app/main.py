@@ -1,15 +1,23 @@
 """FastAPI application entry point for the Government IDSS foundation."""
 from __future__ import annotations
 
-from fastapi import FastAPI
+from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import environment_summary, load_app_config
+from app.schemas.documents import DocumentDetail, DocumentSummary, DocumentUploadResponse
 from app.schemas.health import HealthResponse
 from app.schemas.meta import AppInfoResponse
+from app.services.document_ingestion import (
+    InvalidDocumentError,
+    OCRUnavailableError,
+    get_document,
+    ingest_document,
+)
 
 CONFIG = load_app_config()
 APP_INFO = CONFIG["app"]
+MAX_UPLOAD_BYTES = int(CONFIG["storage"].get("max_upload_size_mb", 25)) * 1024 * 1024
 
 app = FastAPI(
     title=str(APP_INFO.get("name", "Government IDSS")),
@@ -52,3 +60,54 @@ def application_info() -> AppInfoResponse:
         model_mode=str(summary["models_mode"]),
         remote_apis_enabled=bool(summary["remote_apis_enabled"]),
     )
+
+
+@app.post(
+    "/api/v1/documents/upload",
+    response_model=DocumentUploadResponse,
+    status_code=201,
+    tags=["documents"],
+    summary="Upload and extract a TXT, PDF, or image document",
+)
+async def upload_document(file: UploadFile = File(...)) -> DocumentUploadResponse:
+    """Extract text locally and persist source/page/chunk provenance.
+
+    This development endpoint has no authentication yet. Do not expose it to
+    untrusted networks or upload sensitive/real government records.
+    """
+    filename = file.filename or ""
+    try:
+        content = await file.read(MAX_UPLOAD_BYTES + 1)
+    finally:
+        await file.close()
+
+    if len(content) > MAX_UPLOAD_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail=f"File exceeds the configured {MAX_UPLOAD_BYTES // (1024 * 1024)} MB upload limit.",
+        )
+    try:
+        record = ingest_document(filename, content)
+    except InvalidDocumentError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except OCRUnavailableError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except OSError as exc:
+        raise HTTPException(status_code=500, detail="Could not store the processed document locally.") from exc
+
+    summary = DocumentSummary.model_validate(record)
+    return DocumentUploadResponse(document=summary)
+
+
+@app.get(
+    "/api/v1/documents/{document_id}",
+    response_model=DocumentDetail,
+    tags=["documents"],
+    summary="Retrieve extracted text and page-aware chunks",
+)
+def read_document(document_id: str) -> DocumentDetail:
+    """Return a processed document record, including page references and chunks."""
+    record = get_document(document_id)
+    if record is None:
+        raise HTTPException(status_code=404, detail="Document not found.")
+    return DocumentDetail.model_validate(record)
