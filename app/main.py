@@ -8,12 +8,14 @@ from app.core.config import environment_summary, load_app_config
 from app.schemas.documents import DocumentDetail, DocumentSummary, DocumentUploadResponse
 from app.schemas.health import HealthResponse
 from app.schemas.meta import AppInfoResponse
+from app.schemas.search import EvidenceSearchRequest, EvidenceSearchResponse
 from app.services.document_ingestion import (
     InvalidDocumentError,
     OCRUnavailableError,
     get_document,
     ingest_document,
 )
+from app.services.evidence_retrieval import search_evidence
 
 CONFIG = load_app_config()
 APP_INFO = CONFIG["app"]
@@ -112,3 +114,20 @@ def read_document(document_id: str) -> DocumentDetail:
     if record is None:
         raise HTTPException(status_code=404, detail="Document not found.")
     return DocumentDetail.model_validate(record)
+
+
+@app.post(
+    "/api/v1/search/evidence",
+    response_model=EvidenceSearchResponse,
+    tags=["evidence search"],
+    summary="Search ingested documents and return source-linked evidence chunks",
+)
+def evidence_search(request: EvidenceSearchRequest) -> EvidenceSearchResponse:
+    """Search local extracted chunks; this endpoint does not generate AI answers.
+
+    Search is lexical and deterministic. Scores are heuristic ranking signals,
+    not confidence probabilities. Authentication and record-level authorization
+    have not yet been implemented; use synthetic documents only.
+    """
+    result = search_evidence(request.query, request.top_k)
+    return EvidenceSearchResponse.model_validate(result)
