@@ -34,7 +34,7 @@ models:
   allow_remote_apis: false
   embedding_model: null
   text_generation_model: null
-  transcription_model: null
+  transcription_model: "base"
   image_model: null
 
 retrieval:
