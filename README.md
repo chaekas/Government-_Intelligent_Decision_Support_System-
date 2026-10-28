@@ -62,3 +62,24 @@ Copy `.env.example` to `.env` if you want local overrides. Never commit the real
 
 ## Safety note
 This project is decision support, not autonomous decision-making. Authorization, data protection, auditability, model evaluation, and human review must be validated before any operational use.
+
+
+## Run the API (Checkpoint 2)
+After installing dependencies and activating your virtual environment, start the development server:
+
+```bash
+uvicorn app.main:app --reload
+```
+
+Then open these local endpoints in your browser:
+- Health check: `http://127.0.0.1:8000/health`
+- Application metadata: `http://127.0.0.1:8000/api/v1/info`
+- Interactive API docs: `http://127.0.0.1:8000/docs`
+
+Run all automated tests with:
+
+```bash
+pytest
+```
+
+The API currently exposes only health and safe metadata endpoints. Authentication, authorization enforcement, ingestion, retrieval, and decision-support operations are not implemented yet; do not expose this development server to untrusted networks.
