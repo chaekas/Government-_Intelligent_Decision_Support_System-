@@ -2,10 +2,10 @@
 
 An open-source, local-first foundation for evidence-grounded government decision support. The system is intended to help authorized staff search, compare, and summarize permitted records while keeping human decision-makers in control.
 
-> **Development status:** Checkpoints 1–3 are implemented; Checkpoint 4 adds deterministic local keyword retrieval. This is not a production-ready government system. Do not upload real government records, personal data, credentials, or other sensitive information to this public repository or its development server.
+> **Development status:** Checkpoints 1–4 are implemented; Checkpoint 5A adds audio/video upload validation and metadata only. This is not a production-ready government system. Do not upload real government records, personal data, credentials, or other sensitive information to this public repository or its development server.
 
 ## Project goals
-- Process text, PDFs, scanned PDFs, and images; audio/video processing is planned for a later checkpoint.
+- Process text, PDFs, scanned PDFs, images, and (Checkpoint 5A) validate/store WAV, MP3, M4A, and MP4 uploads; transcription is planned for a later checkpoint.
 - Ground retrieval and future reports in traceable evidence, including page or timestamp references when available.
 - Communicate conflicting or insufficient evidence rather than inventing facts.
 - Plan for English and Swahili support, with quality to be evaluated.
@@ -18,6 +18,7 @@ An open-source, local-first foundation for evidence-grounded government decision
 - `app/core/config.py` — validated YAML loader and runtime settings.
 - `app/services/document_ingestion.py` — local text/PDF/image extraction, OCR integration, chunking, and provenance.
 - `app/services/evidence_retrieval.py` — deterministic local keyword retrieval over stored chunks.
+- `app/services/media_ingestion.py` — basic audio/video signature validation and local metadata persistence (no decoding or transcription).
 - `app/schemas/` — API request and response schemas.
 - `tests/` — automated foundation, API, ingestion, and search tests.
 
@@ -92,12 +93,22 @@ If Tesseract is unavailable, OCR uploads return a clear `503` response. Ordinary
 
 Use the Swagger UI at `/docs` to submit a request. Search is deterministic lexical matching; it does not generate an AI answer and does not require an external model. The score is a heuristic ranking signal, **not** a probability or calibrated confidence. A result's source and page references should be checked against the original document before use. No matching chunks means no evidence was retrieved; it does not prove that a fact is false.
 
+
+
+## Checkpoint 5A: audio/video upload validation
+
+The new POST /api/v1/media/upload endpoint accepts WAV, MP3, M4A, and MP4 uploads. It enforces the configured size limit, checks a basic file/container signature (not a malware scan or full media validation), computes SHA-256, assigns a media ID, and stores the file and metadata locally. Retrieve metadata with GET /api/v1/media/{media_id}.
+
+Metadata includes the filename, extension, media type, MIME type inferred from the validated extension, byte size, SHA-256, upload timestamp, and processing/transcription statuses. Duration is intentionally null because Checkpoint 5A does not run a media probe. transcription_status remains not_started: this checkpoint does not transcribe audio or video.
+
+Use the Swagger UI at /docs to test the upload and metadata endpoints with synthetic sample media only. Audio/video uploads are stored in data/media_uploads/; metadata JSON is stored in data/media_metadata/. These paths are ignored by Git. Do not commit recordings or upload real government, personal, confidential, or otherwise sensitive material.
+
 ## Local data and limitations
 
 - Original uploads are written to `data/uploads/`; processed text and page-aware chunks are written to `data/processed/`. These runtime folders are ignored by Git.
 - Current upload and search endpoints have **no authentication or record-level authorization**. Search can retrieve any document stored in this local development instance. Use synthetic documents only and do not expose the development API to untrusted networks.
 - Extraction and OCR can be imperfect. Human reviewers must verify source text and page references.
-- Semantic/vector retrieval, grounded answer generation, audio/video, user permissions, auditing, and production deployment are not implemented yet.
+- Semantic/vector retrieval, grounded answer generation, audio/video transcription, user permissions, auditing, and production deployment are not implemented yet.
 
 ## Development checkpoints
 1. Foundation and tests.
