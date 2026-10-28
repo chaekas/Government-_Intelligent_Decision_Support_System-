@@ -10,6 +10,7 @@ from app.schemas.documents import DocumentDetail, DocumentSummary, DocumentUploa
 from app.schemas.health import HealthResponse
 from app.schemas.meta import AppInfoResponse
 from app.schemas.media import MediaMetadata, MediaUploadResponse
+from app.schemas.media_search import MediaEvidenceSearchRequest, MediaEvidenceSearchResponse
 from app.schemas.search import EvidenceSearchRequest, EvidenceSearchResponse
 from app.schemas.transcription import TranscriptionResponse
 from app.services.document_ingestion import (
@@ -20,6 +21,7 @@ from app.services.document_ingestion import (
 )
 from app.services.evidence_retrieval import search_evidence
 from app.services.media_ingestion import InvalidMediaError, get_media_metadata, ingest_media
+from app.services.media_evidence_search import search_media_evidence
 from app.services.transcription import (
     TranscriptionFailedError,
     TranscriptionUnavailableError,
@@ -142,6 +144,23 @@ def evidence_search(request: EvidenceSearchRequest) -> EvidenceSearchResponse:
     result = search_evidence(request.query, request.top_k)
     return EvidenceSearchResponse.model_validate(result)
 
+
+
+@app.post(
+    "/api/v1/search/media-evidence",
+    response_model=MediaEvidenceSearchResponse,
+    tags=["audio/video evidence"],
+    summary="Search saved audio/video transcripts with timestamp provenance",
+)
+def media_evidence_search(request: MediaEvidenceSearchRequest) -> MediaEvidenceSearchResponse:
+    """Search locally saved transcript segments and return matching media timestamps.
+
+    This is lexical search over existing transcripts, not a search of raw media.
+    Scores are heuristic ranking signals. Authentication and record permissions
+    are not implemented; use synthetic/non-sensitive media only.
+    """
+    result = search_media_evidence(request.query, request.top_k)
+    return MediaEvidenceSearchResponse.model_validate(result)
 
 
 @app.post(
