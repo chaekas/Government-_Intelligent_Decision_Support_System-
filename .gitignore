@@ -23,6 +23,9 @@ env/
 # Local runtime data (never commit real records)
 data/uploads/
 data/processed/
+data/media_uploads/
+data/media_metadata/
+data/transcripts/
 data/*.db
 data/*.sqlite
 data/*.sqlite3
