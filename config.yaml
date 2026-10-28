@@ -1,0 +1,60 @@
+app:
+  name: "Government Intelligent Decision Support System"
+  version: "0.1.0"
+  environment: "development"
+  debug: false
+  default_language: "en"
+  supported_languages:
+    - "en"
+    - "sw"
+
+api:
+  host: "127.0.0.1"
+  port: 8000
+  prefix: "/api/v1"
+
+storage:
+  backend: "sqlite"
+  database_url: "sqlite:///./data/idss.db"
+  upload_dir: "./data/uploads"
+  max_upload_size_mb: 25
+  allowed_extensions:
+    - ".txt"
+    - ".pdf"
+    - ".png"
+    - ".jpg"
+    - ".jpeg"
+    - ".wav"
+    - ".mp3"
+    - ".mp4"
+    - ".m4a"
+
+models:
+  mode: "mock"
+  allow_remote_apis: false
+  embedding_model: null
+  text_generation_model: null
+  transcription_model: null
+  image_model: null
+
+retrieval:
+  top_k: 5
+  minimum_relevance_score: 0.35
+  require_citations: true
+  abstain_when_evidence_insufficient: true
+
+security:
+  require_authentication: true
+  enforce_record_permissions: true
+  audit_events_enabled: true
+  redact_secrets_from_logs: true
+
+evidence:
+  outcome_labels:
+    - "MATCH"
+    - "PARTIAL"
+    - "CONFLICT"
+    - "SINGLE_MODALITY"
+    - "UNCERTAIN"
+  preserve_page_references: true
+  preserve_timestamps: true
