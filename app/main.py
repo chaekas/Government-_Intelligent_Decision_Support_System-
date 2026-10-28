@@ -95,7 +95,8 @@ async def upload_document(file: UploadFile = File(...)) -> DocumentUploadRespons
     except OSError as exc:
         raise HTTPException(status_code=500, detail="Could not store the processed document locally.") from exc
 
-    summary = DocumentSummary.model_validate(record)
+    summary_data = {field: record[field] for field in DocumentSummary.model_fields}
+    summary = DocumentSummary.model_validate(summary_data)
     return DocumentUploadResponse(document=summary)
 
 
