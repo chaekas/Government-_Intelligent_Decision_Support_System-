@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+import re
 
 from app.core.config import environment_summary, load_app_config
 from app.schemas.documents import DocumentDetail, DocumentSummary, DocumentUploadResponse
@@ -10,6 +11,7 @@ from app.schemas.health import HealthResponse
 from app.schemas.meta import AppInfoResponse
 from app.schemas.media import MediaMetadata, MediaUploadResponse
 from app.schemas.search import EvidenceSearchRequest, EvidenceSearchResponse
+from app.schemas.transcription import TranscriptionResponse
 from app.services.document_ingestion import (
     InvalidDocumentError,
     OCRUnavailableError,
@@ -18,6 +20,12 @@ from app.services.document_ingestion import (
 )
 from app.services.evidence_retrieval import search_evidence
 from app.services.media_ingestion import InvalidMediaError, get_media_metadata, ingest_media
+from app.services.transcription import (
+    TranscriptionFailedError,
+    TranscriptionUnavailableError,
+    get_transcript,
+    transcribe_media,
+)
 
 CONFIG = load_app_config()
 APP_INFO = CONFIG["app"]
@@ -181,3 +189,46 @@ def read_media_metadata(media_id: str) -> MediaMetadata:
     if metadata is None:
         raise HTTPException(status_code=404, detail="Media not found.")
     return MediaMetadata.model_validate(metadata)
+
+
+
+@app.post(
+    "/api/v1/media/{media_id}/transcribe",
+    response_model=TranscriptionResponse,
+    tags=["audio/video"],
+    summary="Transcribe uploaded media locally with Whisper",
+)
+def transcribe_uploaded_media(media_id: str, language: str | None = None) -> TranscriptionResponse:
+    """Run local speech-to-text; the first call may download model weights."""
+    if language is not None and not re.fullmatch(r"[a-z]{2,3}", language):
+        raise HTTPException(
+            status_code=422,
+            detail="Language must be a two- or three-letter lowercase language code, such as en or sw.",
+        )
+    if get_media_metadata(media_id) is None:
+        raise HTTPException(status_code=404, detail="Media not found.")
+    try:
+        result = transcribe_media(media_id, language=language)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except TranscriptionUnavailableError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except TranscriptionFailedError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except OSError as exc:
+        raise HTTPException(status_code=500, detail="Could not save the transcription result locally.") from exc
+    return TranscriptionResponse.model_validate(result)
+
+
+@app.get(
+    "/api/v1/media/{media_id}/transcript",
+    response_model=TranscriptionResponse,
+    tags=["audio/video"],
+    summary="Retrieve a previously saved local transcript",
+)
+def read_saved_transcript(media_id: str) -> TranscriptionResponse:
+    """Return transcript segments with timestamps for an already transcribed file."""
+    result = get_transcript(media_id)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Transcript not found. Transcribe the media first.")
+    return TranscriptionResponse.model_validate(result)
