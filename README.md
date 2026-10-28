@@ -2,7 +2,7 @@
 
 An open-source, local-first foundation for evidence-grounded government decision support. The system is intended to help authorized staff search, compare, and summarize permitted records while keeping human decision-makers in control.
 
-> **Development status:** Checkpoints 1–4 are implemented; Checkpoint 5A adds audio/video upload validation and metadata only. This is not a production-ready government system. Do not upload real government records, personal data, credentials, or other sensitive information to this public repository or its development server.
+> **Development status:** Checkpoints 1–4 are implemented; Checkpoint 5A adds audio/video upload validation; Checkpoint 5B adds local Whisper transcription. This is not a production-ready government system. Do not upload real government records, personal data, credentials, or other sensitive information to this public repository or its development server.
 
 ## Project goals
 - Process text, PDFs, scanned PDFs, images, and (Checkpoint 5A) validate/store WAV, MP3, M4A, and MP4 uploads; transcription is planned for a later checkpoint.
@@ -18,7 +18,8 @@ An open-source, local-first foundation for evidence-grounded government decision
 - `app/core/config.py` — validated YAML loader and runtime settings.
 - `app/services/document_ingestion.py` — local text/PDF/image extraction, OCR integration, chunking, and provenance.
 - `app/services/evidence_retrieval.py` — deterministic local keyword retrieval over stored chunks.
-- `app/services/media_ingestion.py` — basic audio/video signature validation and local metadata persistence (no decoding or transcription).
+- `app/services/media_ingestion.py` — basic audio/video signature validation and local metadata persistence.
+- `app/services/transcription.py` — local speech-to-text using faster-whisper, with timestamped segments and saved transcripts.
 - `app/schemas/` — API request and response schemas.
 - `tests/` — automated foundation, API, ingestion, and search tests.
 
@@ -103,12 +104,22 @@ Metadata includes the filename, extension, media type, MIME type inferred from t
 
 Use the Swagger UI at /docs to test the upload and metadata endpoints with synthetic sample media only. Audio/video uploads are stored in data/media_uploads/; metadata JSON is stored in data/media_metadata/. These paths are ignored by Git. Do not commit recordings or upload real government, personal, confidential, or otherwise sensitive material.
 
+
+
+## Checkpoint 5B: local audio/video transcription
+
+Checkpoint 5B adds `POST /api/v1/media/{media_id}/transcribe` and `GET /api/v1/media/{media_id}/transcript`. The transcription endpoint uses the open-source faster-whisper engine with the configured `base` model, CPU execution, and INT8 compute. It returns detected language, an optional language probability, duration when available, timestamped text segments, and the combined transcript. Use `?language=en` or `?language=sw` to supply a language hint; omit it for automatic detection.
+
+Install dependencies with `python -m pip install -r requirements.txt`. The first real transcription may need an internet connection to download the model weights. After the weights are cached, inference runs locally; audio/video content is not sent to a hosted transcription API. CPU transcription can be slow. Model downloads and actual inference are deliberately not performed by automated tests; tests mock the engine so the test suite remains lightweight and deterministic.
+
+The transcript is saved locally in `data/transcripts/`, and the media metadata status is updated. Use synthetic, non-sensitive media only. Machine-generated transcripts can contain errors, especially with noisy audio, multiple speakers, accents, or languages not adequately evaluated. Review the transcript against the original media before relying on it. Checkpoint 5B does not provide speaker identification, translation, or diarization.
+
 ## Local data and limitations
 
 - Original uploads are written to `data/uploads/`; processed text and page-aware chunks are written to `data/processed/`. These runtime folders are ignored by Git.
 - Current upload and search endpoints have **no authentication or record-level authorization**. Search can retrieve any document stored in this local development instance. Use synthetic documents only and do not expose the development API to untrusted networks.
 - Extraction and OCR can be imperfect. Human reviewers must verify source text and page references.
-- Semantic/vector retrieval, grounded answer generation, audio/video transcription, user permissions, auditing, and production deployment are not implemented yet.
+- Semantic/vector retrieval, grounded answer generation, speaker identification, diarization, user permissions, auditing, and production deployment are not implemented yet.
 
 ## Development checkpoints
 1. Foundation and tests.
