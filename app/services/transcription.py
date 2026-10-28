@@ -43,7 +43,7 @@ def _get_model(model_name: str) -> Any:
             from faster_whisper import WhisperModel
         except ImportError as exc:
             raise TranscriptionUnavailableError(
-                "The local transcription engine is not installed. Install requirements.txt and retry."
+                "The local transcription engine is not installed. Install requirements-transcription.txt in a supported Python environment and retry."
             ) from exc
         try:
             model = WhisperModel(model_name, device="cpu", compute_type="int8")
