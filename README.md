@@ -2,7 +2,7 @@
 
 An open-source, local-first foundation for evidence-grounded government decision support. The system is intended to help authorized staff search, compare, and summarize permitted records while keeping human decision-makers in control.
 
-> **Development status:** Checkpoints 1–4 are implemented; Checkpoint 5A adds audio/video upload validation; Checkpoint 5B adds local Whisper transcription. This is not a production-ready government system. Do not upload real government records, personal data, credentials, or other sensitive information to this public repository or its development server.
+> **Development status:** Checkpoints 1–4 are implemented; Checkpoint 5A adds audio/video upload validation; Checkpoint 5B adds local Whisper transcription; Checkpoint 5C adds timestamp-aware transcript search. This is not a production-ready government system. Do not upload real government records, personal data, credentials, or other sensitive information to this public repository or its development server.
 
 ## Project goals
 - Process text, PDFs, scanned PDFs, images, and (Checkpoint 5A) validate/store WAV, MP3, M4A, and MP4 uploads; transcription is planned for a later checkpoint.
@@ -19,7 +19,7 @@ An open-source, local-first foundation for evidence-grounded government decision
 - `app/services/document_ingestion.py` — local text/PDF/image extraction, OCR integration, chunking, and provenance.
 - `app/services/evidence_retrieval.py` — deterministic local keyword retrieval over stored chunks.
 - `app/services/media_ingestion.py` — basic audio/video signature validation and local metadata persistence.
-- `app/services/transcription.py` — local speech-to-text using faster-whisper, with timestamped segments and saved transcripts.
+- `app/services/transcription.py` — local speech-to-text using faster-whisper, with timestamped segments and saved transcripts.\n- `app/services/media_evidence_search.py` — local lexical search across saved transcript segments with timestamp provenance.
 - `app/schemas/` — API request and response schemas.
 - `tests/` — automated foundation, API, ingestion, and search tests.
 
@@ -113,6 +113,21 @@ Checkpoint 5B adds `POST /api/v1/media/{media_id}/transcribe` and `GET /api/v1/m
 Install the standard dependencies with `python -m pip install -r requirements.txt`. To enable transcription, use Python 3.12 and run `python -m pip install -r requirements-transcription.txt`. This keeps the heavier speech engine optional for environments where its native runtime is not supported. The first real transcription may need an internet connection to download the model weights. After the weights are cached, inference runs locally; audio/video content is not sent to a hosted transcription API. CPU transcription can be slow. Model downloads and actual inference are deliberately not performed by automated tests; tests mock the engine so the test suite remains lightweight and deterministic.
 
 The transcript is saved locally in `data/transcripts/`, and the media metadata status is updated. Use synthetic, non-sensitive media only. Machine-generated transcripts can contain errors, especially with noisy audio, multiple speakers, accents, or languages not adequately evaluated. Review the transcript against the original media before relying on it. Checkpoint 5B does not provide speaker identification, translation, or diarization.
+
+## Checkpoint 5C: timestamped transcript evidence search
+
+Checkpoint 5C adds `POST /api/v1/search/media-evidence`. It searches locally saved transcript segments and returns matching text with the source `media_id`, filename, segment index, start/end timestamps in seconds, matched terms, and a heuristic relevance score. For example, search for `road repair` to find matching portions of previously transcribed recordings. The endpoint does not transcribe media on demand and cannot search files that have not been transcribed. Use the returned timestamps to locate and review the original recording. Scores are lexical ranking signals, not probabilities; a missing match does not prove that a topic was not discussed.
+
+Use Swagger at `/docs` to submit a request such as:
+
+```json
+{
+  "query": "road repair",
+  "top_k": 5
+}
+```
+
+The endpoint reads only saved JSON transcripts under `data/transcripts/`; malformed transcript files are skipped. No remote search API is used. The endpoint has no authentication or record-level authorization, so use synthetic/non-sensitive test media only.
 
 ## Local data and limitations
 
