@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.0",
+  "description": "Starter taxonomy for synthetic development data. Departments should review and adapt it before operational use.",
+  "document_types": [
+    "policy",
+    "law_or_regulation",
+    "circular_or_memo",
+    "meeting_minutes",
+    "project_report",
+    "budget_or_finance",
+    "procurement_or_contract",
+    "service_delivery_record",
+    "inspection_or_audit",
+    "correspondence",
+    "application_or_form",
+    "dataset_or_statistics",
+    "audio_transcript",
+    "video_record",
+    "other",
+    "unknown"
+  ],
+  "topic_families": [
+    "administration",
+    "public_finance",
+    "procurement",
+    "infrastructure",
+    "health",
+    "education",
+    "agriculture",
+    "environment",
+    "social_services",
+    "justice_and_compliance",
+    "public_safety",
+    "digital_services",
+    "human_resources",
+    "other",
+    "unknown"
+  ],
+  "evidence_outcomes": [
+    "MATCH",
+    "PARTIAL",
+    "CONFLICT",
+    "SINGLE_MODALITY",
+    "UNCERTAIN"
+  ],
+  "notes": [
+    "Labels are suggestions, not authoritative classifications.",
+    "The system should allow unknown or uncertain classifications.",
+    "Use synthetic or properly de-identified records in public development environments."
+  ]
+}
