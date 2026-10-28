@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 import pytest
@@ -17,6 +16,8 @@ client = TestClient(app)
 def isolated_search_storage(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Path:
     uploads = tmp_path / "uploads"
     processed = tmp_path / "processed"
+    uploads.mkdir(parents=True, exist_ok=True)
+    processed.mkdir(parents=True, exist_ok=True)
     monkeypatch.setattr(ingestion, "UPLOAD_DIR", uploads)
     monkeypatch.setattr(ingestion, "PROCESSED_DIR", processed)
     monkeypatch.setattr(retrieval, "PROCESSED_DIR", processed)
@@ -26,21 +27,11 @@ def isolated_search_storage(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> 
 def test_search_uploaded_document_returns_text_and_provenance(isolated_search_storage: Path) -> None:
     upload = client.post(
         "/api/v1/documents/upload",
-        files={
-            "file": (
-                "road_report.txt",
-                b"The fictional North Road inspection identified three potholes. Repair cost is 45000 rupees.",
-                "text/plain",
-            )
-        },
+        files={"file": ("road_report.txt", b"The fictional North Road inspection identified three potholes. Repair cost is 45000 rupees.", "text/plain")},
     )
     assert upload.status_code == 201
     document_id = upload.json()["document"]["document_id"]
-
-    response = client.post(
-        "/api/v1/search/evidence",
-        json={"query": "potholes repair cost", "top_k": 5},
-    )
+    response = client.post("/api/v1/search/evidence", json={"query": "potholes repair cost", "top_k": 5})
     assert response.status_code == 200
     body = response.json()
     assert body["total_matches"] == 1
@@ -54,33 +45,16 @@ def test_search_uploaded_document_returns_text_and_provenance(isolated_search_st
 
 
 def test_search_returns_empty_results_when_no_terms_match(isolated_search_storage: Path) -> None:
-    client.post(
-        "/api/v1/documents/upload",
-        files={"file": ("note.txt", b"A fictional park needs new benches.", "text/plain")},
-    )
-    response = client.post(
-        "/api/v1/search/evidence",
-        json={"query": "airport runway", "top_k": 5},
-    )
+    client.post("/api/v1/documents/upload", files={"file": ("note.txt", b"A fictional park needs new benches.", "text/plain")})
+    response = client.post("/api/v1/search/evidence", json={"query": "airport runway", "top_k": 5})
     assert response.status_code == 200
     assert response.json()["total_matches"] == 0
     assert response.json()["results"] == []
 
 
 def test_search_respects_top_k(isolated_search_storage: Path) -> None:
-    content = (
-        "Road repair budget.\n\n"
-        "Road repair schedule.\n\n"
-        "Road repair contractor.\n\n"
-    )
-    client.post(
-        "/api/v1/documents/upload",
-        files={"file": ("road.txt", content.encode(), "text/plain")},
-    )
-    response = client.post(
-        "/api/v1/search/evidence",
-        json={"query": "road repair", "top_k": 1},
-    )
+    client.post("/api/v1/documents/upload", files={"file": ("road.txt", b"Road repair budget. Road repair schedule. Road repair contractor.", "text/plain")})
+    response = client.post("/api/v1/search/evidence", json={"query": "road repair", "top_k": 1})
     assert response.status_code == 200
     assert len(response.json()["results"]) == 1
     assert response.json()["total_matches"] >= 1
@@ -98,10 +72,7 @@ def test_search_rejects_top_k_outside_allowed_range() -> None:
 
 def test_search_ignores_corrupt_processed_records(isolated_search_storage: Path) -> None:
     (isolated_search_storage / "broken.json").write_text("{invalid", encoding="utf-8")
-    response = client.post(
-        "/api/v1/search/evidence",
-        json={"query": "budget", "top_k": 5},
-    )
+    response = client.post("/api/v1/search/evidence", json={"query": "budget", "top_k": 5})
     assert response.status_code == 200
     assert response.json()["results"] == []
 
