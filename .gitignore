@@ -22,6 +22,7 @@ env/
 
 # Local runtime data (never commit real records)
 data/uploads/
+data/processed/
 data/*.db
 data/*.sqlite
 data/*.sqlite3
