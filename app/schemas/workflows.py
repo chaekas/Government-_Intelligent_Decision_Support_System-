@@ -47,3 +47,13 @@ class ReportDraftResponse(BaseModel):
     draft_markdown: str
     limitations: list[str]
     human_review_required: bool = True
+
+
+
+class ReportDraftRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    title: str = Field(min_length=2, max_length=160)
+    question: str = Field(min_length=2, max_length=500)
+    document_query: str | None = Field(default=None, min_length=2, max_length=500)
+    media_query: str | None = Field(default=None, min_length=2, max_length=500)
+    top_k: int = Field(default=5, ge=1, le=20)
