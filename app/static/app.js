@@ -182,7 +182,7 @@ $("#transcribe-form").addEventListener("submit", async (event) => {
     summary.textContent = `Transcription saved · Language: ${body.language || "unknown"} · Duration: ${body.duration_seconds ?? "unknown"} seconds · Segments: ${body.segments.length}`;
     const transcript = document.createElement("p");
     transcript.className = "evidence-text";
-    transcript.textContent = body.text || "No transcript text was returned.";
+    transcript.textContent = body.full_text || "No transcript text was returned.";
     target.append(summary, transcript);
   } catch (error) {
     setMessage(target, error.message, true);
