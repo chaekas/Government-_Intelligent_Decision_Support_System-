@@ -2,7 +2,7 @@
 
 An open-source, local-first foundation for evidence-grounded government decision support. The system is intended to help authorized staff search, compare, and summarize permitted records while keeping human decision-makers in control.
 
-> **Development status:** Checkpoints 1–4 provide the API and document evidence search; Checkpoints 5A–5C add audio/video upload, optional local transcription, and timestamped transcript search; Checkpoint 6 adds a same-origin browser workspace at `/ui`. This is not a production-ready government system. Do not upload real government records, personal data, credentials, or other sensitive information to this public repository or its development server.
+> **Development status:** Checkpoints 1–4 provide the API and document evidence search; Checkpoints 5A–5C add audio/video upload, optional local transcription, and timestamped transcript search; Checkpoint 6 adds a same-origin browser workspace at `/ui`; Checkpoint 7 adds evidence comparison and source-linked report drafts. This is not a production-ready government system. Do not upload real government records, personal data, credentials, or other sensitive information to this public repository or its development server.
 
 ## Project goals
 - Process text, PDFs, scanned PDFs, images, and validate/store WAV, MP3, M4A, and MP4 uploads, with optional local transcription and timestamped transcript search.
@@ -20,7 +20,7 @@ An open-source, local-first foundation for evidence-grounded government decision
 - `app/services/evidence_retrieval.py` — deterministic local keyword retrieval over stored chunks.
 - `app/services/media_ingestion.py` — basic audio/video signature validation and local metadata persistence.
 - `app/services/transcription.py` — local speech-to-text using faster-whisper, with timestamped segments and saved transcripts.
-- `app/services/media_evidence_search.py` — local lexical search across saved transcript segments with timestamp provenance.
+- `app/services/media_evidence_search.py` — local lexical search across saved transcript segments with timestamp provenance.\n- `app/services/evidence_workflows.py` — compare retrieved document/transcript passages and assemble Markdown report drafts with provenance.
 - `app/schemas/` — API request and response schemas.
 - `app/static/` — browser workspace HTML, CSS, and JavaScript.
 - `tests/` — automated foundation, API, ingestion, search, and frontend tests.
