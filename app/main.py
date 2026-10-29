@@ -148,8 +148,9 @@ def application_info() -> AppInfoResponse:
 async def upload_document(file: UploadFile = File(...)) -> DocumentUploadResponse:
     """Extract text locally and persist source/page/chunk provenance.
 
-    This development endpoint has no authentication yet. Do not expose it to
-    untrusted networks or upload sensitive/real government records.
+    Authentication is enforced when IDSS_API_TOKEN is configured. This shared-token
+    guard does not enforce record-level permissions; do not expose the development
+    service to untrusted networks or upload sensitive/real government records.
     """
     filename = file.filename or ""
     try:
@@ -200,8 +201,8 @@ def evidence_search(request: EvidenceSearchRequest) -> EvidenceSearchResponse:
     """Search local extracted chunks; this endpoint does not generate AI answers.
 
     Search is lexical and deterministic. Scores are heuristic ranking signals,
-    not confidence probabilities. Authentication and record-level authorization
-    have not yet been implemented; use synthetic documents only.
+    not confidence probabilities. Shared-token authentication is optional; record-level
+    authorization is not implemented. Use synthetic documents only.
     """
     result = search_evidence(request.query, request.top_k)
     return EvidenceSearchResponse.model_validate(result)
@@ -218,8 +219,8 @@ def media_evidence_search(request: MediaEvidenceSearchRequest) -> MediaEvidenceS
     """Search locally saved transcript segments and return matching media timestamps.
 
     This is lexical search over existing transcripts, not a search of raw media.
-    Scores are heuristic ranking signals. Authentication and record permissions
-    are not implemented; use synthetic/non-sensitive media only.
+    Scores are heuristic ranking signals. Shared-token authentication is optional;
+    record-level permissions are not implemented. Use synthetic/non-sensitive media only.
     """
     result = search_media_evidence(request.query, request.top_k)
     return MediaEvidenceSearchResponse.model_validate(result)
