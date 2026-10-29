@@ -13,7 +13,7 @@
   },
   {
     "case_id": "synthetic-water-pipe",
-    "query": "water pipe leakage",
+    "query": "water pipe leak",
     "relevant_filename": "water_report.txt",
     "document_text": "Synthetic example: a water pipe leak was reported near the community hall."
   }
