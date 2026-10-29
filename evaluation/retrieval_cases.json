@@ -1,0 +1,20 @@
+[
+  {
+    "case_id": "synthetic-road-repair",
+    "query": "potholes repair cost",
+    "relevant_filename": "road_report.txt",
+    "document_text": "Synthetic example: inspection found potholes on North Road and estimated repair cost at 45000 rupees."
+  },
+  {
+    "case_id": "synthetic-park-benches",
+    "query": "park benches replacement",
+    "relevant_filename": "park_note.txt",
+    "document_text": "Synthetic example: the public park requires replacement benches before the next inspection."
+  },
+  {
+    "case_id": "synthetic-water-pipe",
+    "query": "water pipe leak",
+    "relevant_filename": "water_report.txt",
+    "document_text": "Synthetic example: a water pipe leak was reported near the community hall."
+  }
+]
