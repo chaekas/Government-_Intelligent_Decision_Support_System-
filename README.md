@@ -20,7 +20,8 @@ An open-source, local-first foundation for evidence-grounded government decision
 - `app/services/evidence_retrieval.py` — deterministic local keyword retrieval over stored chunks.
 - `app/services/media_ingestion.py` — basic audio/video signature validation and local metadata persistence.
 - `app/services/transcription.py` — local speech-to-text using faster-whisper, with timestamped segments and saved transcripts.
-- `app/services/media_evidence_search.py` — local lexical search across saved transcript segments with timestamp provenance.\n- `app/services/evidence_workflows.py` — compare retrieved document/transcript passages and assemble Markdown report drafts with provenance.
+- `app/services/media_evidence_search.py` — local lexical search across saved transcript segments with timestamp provenance.
+- `app/services/evidence_workflows.py` — compare retrieved document/transcript passages and assemble Markdown report drafts with provenance.
 - `app/schemas/` — API request and response schemas.
 - `app/static/` — browser workspace HTML, CSS, and JavaScript.
 - `tests/` — automated foundation, API, ingestion, search, and frontend tests.
@@ -144,6 +145,39 @@ Checkpoint 6 adds a lightweight, responsive browser workspace served by the same
 - Timestamped transcript evidence search with media IDs and segment references.
 
 The browser communicates with the API on the same origin and does not require a separate frontend build or paid service. The first transcription may download model weights and can be slow on CPU. The UI reports API errors and displays an explicit no-results message; lexical scores are not probabilities. As with the API, the workspace has no authentication or record-level authorization. Use synthetic/non-sensitive data only and review source documents or recordings before relying on any evidence.
+
+
+## Checkpoint 7: evidence comparison and report workflows
+
+Checkpoint 7 adds two API endpoints and a browser workflow under **Compare & report**:
+
+- `POST /api/v1/evidence/compare` independently searches document chunks and saved transcript segments. The response groups results by modality and preserves source ID, filename, page/chunk or segment/timestamp location, matched terms, and heuristic score. Optional `document_query` and `media_query` fields allow different searches for the two modalities; otherwise the main `query` is used for both.
+- `POST /api/v1/reports/draft` builds a Markdown report from retrieved passages, with numbered source references, a preliminary coverage note, reviewer actions, and limitations. The dashboard lets a user edit the Markdown and download it as a `.md` file.
+
+Example comparison request:
+
+```json
+{
+  "query": "road repair estimate",
+  "document_query": "road repair estimate",
+  "media_query": "repair cost discussed",
+  "top_k": 5
+}
+```
+
+Example report request:
+
+```json
+{
+  "title": "Road Repair Evidence Review",
+  "question": "What evidence is available about the road repair estimate?",
+  "top_k": 5
+}
+```
+
+These endpoints organize retrieved passages; they do not decide whether two sources agree, prove a claim, or generate unsupported findings. When both modalities return results, the assessment remains `UNCERTAIN` until a human reviewer compares the source context. If only one modality returns results, the response uses `SINGLE_MODALITY`. No results means only that the current retrieval process found no matching passages, not that evidence does not exist. Scores are heuristic ranking signals, not probabilities. Verify quotations against original files and recordings before relying on a draft. The report is a working draft, not a final decision or recommendation.
+
+Use synthetic/non-sensitive data only. Authentication and record-level authorization are not implemented.
 
 ## Local data and limitations
 
