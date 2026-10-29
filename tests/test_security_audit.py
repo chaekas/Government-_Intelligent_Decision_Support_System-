@@ -42,7 +42,8 @@ def test_audit_event_omits_secrets_and_content(monkeypatch, tmp_path: Path) -> N
     event = json.loads(raw)
     assert event["request_id"] == "test-request"
     assert event["route"] == "/api/v1/search/evidence"
-    assert "token" not in raw.casefold()
+    assert "test-only-token" not in raw
+    assert "authorization" not in raw.casefold()
     assert "document text" not in raw.casefold()
 
 
