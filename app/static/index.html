@@ -29,6 +29,7 @@
     <nav class="tabs" aria-label="Workspace sections">
       <button class="tab active" data-panel="documents">Documents</button>
       <button class="tab" data-panel="media">Audio &amp; video</button>
+      <button class="tab" data-panel="workflows">Compare &amp; report</button>
     </nav>
 
     <section id="panel-documents" class="panel active">
@@ -87,6 +88,39 @@
       </div>
     </section>
 
+
+    <section id="panel-workflows" class="panel">
+      <div class="grid">
+        <article class="card card-wide">
+          <div class="card-heading"><span class="step">01</span><div><h2>Compare retrieved evidence</h2><p>Search documents and saved transcripts for the same topic, then review their sources side by side.</p></div></div>
+          <form id="compare-form">
+            <label for="compare-query">Question or topic</label>
+            <textarea id="compare-query" rows="2" minlength="2" maxlength="500" placeholder="e.g. North Road repair estimate and schedule" required></textarea>
+            <div class="grid">
+              <div><label for="compare-document-query">Document query (optional)</label><input id="compare-document-query" type="text" maxlength="500" placeholder="Use the topic above by default"></div>
+              <div><label for="compare-media-query">Transcript query (optional)</label><input id="compare-media-query" type="text" maxlength="500" placeholder="Use the topic above by default"></div>
+            </div>
+            <div class="form-row"><label for="compare-top-k">Results per source</label><select id="compare-top-k"><option>5</option><option>10</option><option>15</option><option>20</option></select></div>
+            <button class="primary" type="submit">Compare evidence</button>
+          </form>
+          <div id="compare-summary" class="result-box" aria-live="polite">Comparison summary will appear here.</div>
+          <div id="compare-results" class="results" aria-live="polite"></div>
+        </article>
+        <article class="card card-wide">
+          <div class="card-heading"><span class="step">02</span><div><h2>Draft a source-linked report</h2><p>Generate a review-ready Markdown draft from retrieved passages. Conclusions still require a human reviewer.</p></div></div>
+          <form id="report-form">
+            <label for="report-title">Report title</label><input id="report-title" type="text" minlength="2" maxlength="160" placeholder="e.g. North Road Evidence Review" required>
+            <label for="report-question" class="spaced-label">Question or topic</label><textarea id="report-question" rows="2" minlength="2" maxlength="500" placeholder="What should this report examine?" required></textarea>
+            <div class="form-row"><label for="report-top-k">Results per source</label><select id="report-top-k"><option>5</option><option>10</option><option>15</option><option>20</option></select></div>
+            <button class="primary" type="submit">Generate report draft</button>
+          </form>
+          <div id="report-status" class="result-box" aria-live="polite">Your draft will appear here.</div>
+          <label for="report-output" class="spaced-label">Editable Markdown draft</label>
+          <textarea id="report-output" rows="16" placeholder="Generate a report to see the cited draft here. You can edit it before saving." spellcheck="false"></textarea>
+          <button id="download-report" class="secondary" type="button" disabled>Download Markdown (.md)</button>
+        </article>
+      </div>
+    </section>
     <footer><span>Evidence-grounded assistance, not automated decisions.</span><span><a href="/health" target="_blank" rel="noreferrer">Health check</a> · <a href="/openapi.json" target="_blank" rel="noreferrer">OpenAPI schema</a></span></footer>
   </main>
 </body>
