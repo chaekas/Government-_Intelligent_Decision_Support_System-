@@ -223,4 +223,89 @@ $("#media-search-form").addEventListener("submit", async (event) => {
   }
 });
 
+
+$("#compare-form").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const button = event.currentTarget.querySelector("button[type=submit]");
+  const summary = $("#compare-summary");
+  const results = $("#compare-results");
+  results.replaceChildren();
+  setBusy(button, true, "Comparing…");
+  setMessage(summary, "Searching both evidence collections…");
+  try {
+    const documentQuery = $("#compare-document-query").value.trim();
+    const mediaQuery = $("#compare-media-query").value.trim();
+    const payload = {
+      query: $("#compare-query").value.trim(),
+      top_k: Number($("#compare-top-k").value)
+    };
+    if (documentQuery) payload.document_query = documentQuery;
+    if (mediaQuery) payload.media_query = mediaQuery;
+    const body = await apiRequest("/api/v1/evidence/compare", {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(payload)
+    });
+    setMessage(summary, `Coverage: ${body.coverage.replaceAll("_", " ")}. Assessment: ${body.assessment}. ${body.assessment_note} Evidence items: ${body.evidence_count}. Human review required.`);
+    const all = [...body.document_results, ...body.media_results];
+    if (!all.length) {
+      const empty = document.createElement("p");
+      empty.className = "muted";
+      empty.textContent = "No evidence was retrieved. This does not prove that the topic is absent from the records.";
+      results.append(empty);
+    } else {
+      all.forEach((item) => addEvidenceCard(results, {
+        title: `${item.filename} · ${item.modality === "document" ? "Document" : "Audio/video"}`,
+        badge: `Score ${Number(item.score).toFixed(2)}`,
+        text: item.text,
+        metadata: `Source ID: ${item.source_id} · ${item.location} · Matched terms: ${item.matched_terms.join(", ")}`
+      }));
+    }
+  } catch (error) {
+    setMessage(summary, error.message, true);
+  } finally {
+    setBusy(button, false);
+  }
+});
+
+$("#report-form").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const button = event.currentTarget.querySelector("button[type=submit]");
+  const target = $("#report-status");
+  setBusy(button, true, "Drafting report…");
+  setMessage(target, "Retrieving evidence and assembling a cited draft…");
+  try {
+    const body = await apiRequest("/api/v1/reports/draft", {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        title: $("#report-title").value.trim(),
+        question: $("#report-question").value.trim(),
+        top_k: Number($("#report-top-k").value)
+      })
+    });
+    $("#report-output").value = body.draft_markdown;
+    $("#download-report").disabled = false;
+    setMessage(target, `Draft created with ${body.evidence_count} evidence item(s). Assessment: ${body.assessment}. Review every citation and limitation before use.`);
+  } catch (error) {
+    setMessage(target, error.message, true);
+  } finally {
+    setBusy(button, false);
+  }
+});
+
+$("#download-report").addEventListener("click", () => {
+  const text = $("#report-output").value;
+  if (!text.trim()) return;
+  const blob = new Blob([text], {type: "text/markdown;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  const baseName = ($("#report-title").value.trim() || "evidence-report")
+    .replace(/[^a-z0-9_-]+/gi, "-").replace(/^-+|-+$/g, "").slice(0, 80) || "evidence-report";
+  anchor.href = url;
+  anchor.download = `${baseName}.md`;
+  document.body.append(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+});
+
 checkHealth();
