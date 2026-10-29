@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Local-first Government IDSS evidence workspace">
+  <title>Government IDSS | Evidence Workspace</title>
+  <link rel="stylesheet" href="/static/app.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-mark" aria-hidden="true">ID</div>
+    <div class="brand-copy"><strong>Government IDSS</strong><span>Evidence workspace · Development</span></div>
+    <a class="docs-link" href="/docs" target="_blank" rel="noreferrer">API documentation ↗</a>
+  </header>
+  <main class="layout">
+    <section class="welcome">
+      <div>
+        <p class="eyebrow">LOCAL-FIRST DECISION SUPPORT</p>
+        <h1>Find the evidence.<br><span>Keep people in control.</span></h1>
+        <p class="intro">Upload a synthetic document or recording, search stored evidence, and review its source references before drawing conclusions.</p>
+      </div>
+      <div class="status-card"><span id="health-dot" class="status-dot"></span><div><strong id="health-title">Checking API…</strong><p id="health-detail">Connecting to the local service</p></div></div>
+    </section>
+
+    <div class="notice" role="note"><strong>Development safety:</strong> Use synthetic, non-sensitive data only. This interface has no login or record-level permissions and is not approved for operational government records.</div>
+
+    <nav class="tabs" aria-label="Workspace sections">
+      <button class="tab active" data-panel="documents">Documents</button>
+      <button class="tab" data-panel="media">Audio &amp; video</button>
+    </nav>
+
+    <section id="panel-documents" class="panel active">
+      <div class="grid">
+        <article class="card">
+          <div class="card-heading"><span class="step">01</span><div><h2>Upload a document</h2><p>TXT, PDF, PNG, JPG, or JPEG</p></div></div>
+          <form id="document-upload-form">
+            <label class="file-picker" for="document-file"><span class="file-icon">↑</span><span><strong>Choose a file</strong><small>Maximum size follows server configuration</small></span></label>
+            <input id="document-file" name="file" type="file" accept=".txt,.pdf,.png,.jpg,.jpeg" required>
+            <button class="primary" type="submit">Upload and extract text</button>
+          </form>
+          <div id="document-upload-result" class="result-box" aria-live="polite">Your upload result will appear here.</div>
+        </article>
+        <article class="card">
+          <div class="card-heading"><span class="step">02</span><div><h2>Search document evidence</h2><p>Find matching passages with page references</p></div></div>
+          <form id="document-search-form">
+            <label for="document-query">What are you looking for?</label>
+            <textarea id="document-query" rows="3" minlength="2" maxlength="500" placeholder="e.g. road repair budget" required></textarea>
+            <div class="form-row"><label for="document-top-k">Maximum results</label><select id="document-top-k"><option>5</option><option>10</option><option>15</option><option>20</option></select></div>
+            <button class="primary" type="submit">Search documents</button>
+          </form>
+          <div id="document-search-results" class="results" aria-live="polite"><p class="muted">Search results will appear here.</p></div>
+        </article>
+      </div>
+    </section>
+
+    <section id="panel-media" class="panel">
+      <div class="grid">
+        <article class="card">
+          <div class="card-heading"><span class="step">01</span><div><h2>Upload audio or video</h2><p>WAV, MP3, M4A, or MP4</p></div></div>
+          <form id="media-upload-form">
+            <label class="file-picker" for="media-file"><span class="file-icon">↑</span><span><strong>Choose a recording</strong><small>Only synthetic or non-sensitive media</small></span></label>
+            <input id="media-file" name="file" type="file" accept=".wav,.mp3,.m4a,.mp4" required>
+            <button class="primary" type="submit">Upload media</button>
+          </form>
+          <div id="media-upload-result" class="result-box" aria-live="polite">Your media ID will appear here after upload.</div>
+        </article>
+        <article class="card">
+          <div class="card-heading"><span class="step">02</span><div><h2>Transcribe a recording</h2><p>Runs locally when the optional engine is installed</p></div></div>
+          <form id="transcribe-form">
+            <label for="media-id">Media ID</label><input id="media-id" type="text" placeholder="Paste the media ID from upload" required>
+            <div class="form-row"><label for="language">Language hint</label><select id="language"><option value="">Auto-detect</option><option value="en">English</option><option value="sw">Swahili</option></select></div>
+            <button class="primary" type="submit">Transcribe locally</button>
+          </form>
+          <div id="transcribe-result" class="result-box" aria-live="polite">Transcription status and transcript will appear here.</div>
+        </article>
+        <article class="card card-wide">
+          <div class="card-heading"><span class="step">03</span><div><h2>Search timestamped media evidence</h2><p>Search saved transcript segments, then verify the original recording</p></div></div>
+          <form id="media-search-form">
+            <label for="media-query">Search transcript text</label><textarea id="media-query" rows="2" minlength="2" maxlength="500" placeholder="e.g. road repair" required></textarea>
+            <div class="form-row"><label for="media-top-k">Maximum results</label><select id="media-top-k"><option>5</option><option>10</option><option>15</option><option>20</option></select></div>
+            <button class="primary" type="submit">Search transcripts</button>
+          </form>
+          <div id="media-search-results" class="results" aria-live="polite"><p class="muted">Media evidence results will appear here.</p></div>
+        </article>
+      </div>
+    </section>
+
+    <footer><span>Evidence-grounded assistance, not automated decisions.</span><span><a href="/health" target="_blank" rel="noreferrer">Health check</a> · <a href="/openapi.json" target="_blank" rel="noreferrer">OpenAPI schema</a></span></footer>
+  </main>
+</body>
+</html>
