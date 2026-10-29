@@ -7,8 +7,17 @@ from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 from fastapi.middleware.cors import CORSMiddleware
 import re
+from time import perf_counter
 
 from app.core.config import environment_summary, load_app_config
+from app.core.security import (
+    audit_route,
+    authorize_request,
+    new_request_id,
+    request_requires_auth,
+    unauthorized_response,
+    write_audit_event,
+)
 from app.schemas.documents import DocumentDetail, DocumentSummary, DocumentUploadResponse
 from app.schemas.health import HealthResponse
 from app.schemas.meta import AppInfoResponse
@@ -63,6 +72,49 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["Authorization", "Content-Type"],
 )
+
+@app.middleware("http")
+async def security_and_audit_middleware(request, call_next):
+    """Apply optional bearer-token protection and append metadata-only audit events."""
+    started = perf_counter()
+    request_id = new_request_id(request)
+    auth_required = request_requires_auth(request.url.path)
+    authorized = authorize_request(request) if auth_required else True
+    if auth_required and not authorized:
+        response = unauthorized_response()
+    else:
+        try:
+            response = await call_next(request)
+        except Exception:
+            try:
+                write_audit_event(
+                    request_id=request_id,
+                    method=request.method,
+                    route=audit_route(request),
+                    status_code=500,
+                    duration_ms=(perf_counter() - started) * 1000,
+                    auth_required=auth_required,
+                    authorized=authorized,
+                )
+            except OSError:
+                pass
+            raise
+    response.headers["X-Request-ID"] = request_id
+    try:
+        write_audit_event(
+            request_id=request_id,
+            method=request.method,
+            route=audit_route(request),
+            status_code=response.status_code,
+            duration_ms=(perf_counter() - started) * 1000,
+            auth_required=auth_required,
+            authorized=authorized,
+        )
+    except OSError:
+        # Do not expose filesystem details in HTTP responses. Operational
+        # deployments must monitor audit storage and use protected durable logs.
+        pass
+    return response
 
 
 @app.get("/health", response_model=HealthResponse, tags=["system"])
