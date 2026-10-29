@@ -2,7 +2,7 @@
 
 An open-source, local-first foundation for evidence-grounded government decision support. The system is intended to help authorized staff search, compare, and summarize permitted records while keeping human decision-makers in control.
 
-> **Development status:** Checkpoints 1–4 provide the API and document evidence search; Checkpoints 5A–5C add audio/video upload, optional local transcription, and timestamped transcript search; Checkpoint 6 adds a same-origin browser workspace at `/ui`; Checkpoint 7 adds evidence comparison and source-linked report drafts. This is not a production-ready government system. Do not upload real government records, personal data, credentials, or other sensitive information to this public repository or its development server.
+> **Development status:** Checkpoints 1–4 provide the API and document evidence search; Checkpoints 5A–5C add audio/video upload, optional local transcription, and timestamped transcript search; Checkpoint 6 adds a same-origin browser workspace at `/ui`; Checkpoint 7 adds evidence comparison and source-linked report drafts; Checkpoint 8 adds optional bearer-token enforcement, metadata-only audit events, synthetic retrieval evaluation, and a threat review. This is not a production-ready government system. Do not upload real government records, personal data, credentials, or other sensitive information to this public repository or its development server.
 
 ## Project goals
 - Process text, PDFs, scanned PDFs, images, and validate/store WAV, MP3, M4A, and MP4 uploads, with optional local transcription and timestamped transcript search.
@@ -22,6 +22,9 @@ An open-source, local-first foundation for evidence-grounded government decision
 - `app/services/transcription.py` — local speech-to-text using faster-whisper, with timestamped segments and saved transcripts.
 - `app/services/media_evidence_search.py` — local lexical search across saved transcript segments with timestamp provenance.
 - `app/services/evidence_workflows.py` — compare retrieved document/transcript passages and assemble Markdown report drafts with provenance.
+- `app/core/security.py` — optional bearer-token checks and privacy-conscious audit event writing.
+- `docs/THREAT_MODEL.md` — threat review, current safeguards, gaps, and release blockers.
+- `evaluation/retrieval_cases.json` — synthetic retrieval evaluation cases.
 - `app/schemas/` — API request and response schemas.
 - `app/static/` — browser workspace HTML, CSS, and JavaScript.
 - `tests/` — automated foundation, API, ingestion, search, and frontend tests.
@@ -179,12 +182,26 @@ These endpoints organize retrieved passages; they do not decide whether two sour
 
 Use synthetic/non-sensitive data only. Authentication and record-level authorization are not implemented.
 
+## Checkpoint 8: security and evaluation
+
+If `IDSS_API_TOKEN` is set in the server environment, protected `/api/v1/*` routes require an `Authorization: Bearer <token>` header. The public `/health` and `/api/v1/info` routes remain accessible. Without this environment variable, the app stays in local-development mode without API authentication. Do not put a token in frontend JavaScript or commit it to Git.
+
+Audit events are enabled by default and append to `data/audit/events.jsonl`. Events contain request IDs, route templates, methods, status codes, durations, and authorization outcomes. They intentionally omit tokens, request bodies, query strings, filenames, and extracted source text. Set `IDSS_AUDIT_LOG_PATH` to choose another path. Protect the log file and directory; local append-only JSONL is not tamper-proof or a centralized audit system.
+
+Run the synthetic retrieval evaluation with the regular test command:
+
+```bash
+PYTHONPATH=. python -m pytest tests/test_retrieval_evaluation.py tests/test_security_audit.py -q
+```
+
+The shared bearer token is not a real identity system and does not provide user roles or department/record-level access. The browser UI does not currently offer secure token entry, so use the API docs or a properly designed client when token enforcement is enabled. Read `docs/THREAT_MODEL.md` before further deployment work.
+
 ## Local data and limitations
 
 - Original uploads are written to `data/uploads/`; processed text and page-aware chunks are written to `data/processed/`. These runtime folders are ignored by Git.
-- Current upload and search endpoints have **no authentication or record-level authorization**. Search can retrieve any document stored in this local development instance. Use synthetic documents only and do not expose the development API to untrusted networks.
+- If `IDSS_API_TOKEN` is not configured, API authentication is disabled. Even when configured, this checkpoint does **not** implement record-level authorization: any valid token can still access any record in the local development instance. Use synthetic documents only and do not expose the development API to untrusted networks.
 - Extraction and OCR can be imperfect. Human reviewers must verify source text and page references.
-- Semantic/vector retrieval, grounded answer generation, speaker identification, diarization, user permissions, auditing, and production deployment are not implemented yet.
+- Semantic/vector retrieval, grounded answer generation, speaker identification, diarization, individual identities/roles, department- and record-level permissions, tamper-evident audit storage, and production deployment are not implemented yet.
 
 ## Development checkpoints
 1. Foundation and tests.
