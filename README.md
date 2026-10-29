@@ -2,10 +2,10 @@
 
 An open-source, local-first foundation for evidence-grounded government decision support. The system is intended to help authorized staff search, compare, and summarize permitted records while keeping human decision-makers in control.
 
-> **Development status:** Checkpoints 1–4 are implemented; Checkpoint 5A adds audio/video upload validation; Checkpoint 5B adds local Whisper transcription; Checkpoint 5C adds timestamp-aware transcript search. Checkpoint 6 adds a same-origin browser workspace at `/ui`. This is not a production-ready government system. Do not upload real government records, personal data, credentials, or other sensitive information to this public repository or its development server.
+> **Development status:** Checkpoints 1–4 provide the API and document evidence search; Checkpoints 5A–5C add audio/video upload, optional local transcription, and timestamped transcript search; Checkpoint 6 adds a same-origin browser workspace at `/ui`. This is not a production-ready government system. Do not upload real government records, personal data, credentials, or other sensitive information to this public repository or its development server.
 
 ## Project goals
-- Process text, PDFs, scanned PDFs, images, and (Checkpoint 5A) validate/store WAV, MP3, M4A, and MP4 uploads; transcription is planned for a later checkpoint.
+- Process text, PDFs, scanned PDFs, images, and validate/store WAV, MP3, M4A, and MP4 uploads, with optional local transcription and timestamped transcript search.
 - Ground retrieval and future reports in traceable evidence, including page or timestamp references when available.
 - Communicate conflicting or insufficient evidence rather than inventing facts.
 - Plan for English and Swahili support, with quality to be evaluated.
