@@ -8,8 +8,6 @@ import hmac
 import json
 import os
 import re
-import secrets
-import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -34,7 +32,7 @@ def audit_enabled() -> bool:
 
 def request_requires_auth(path: str) -> bool:
     """Protect API routes while leaving health and safe application metadata public."""
-    return path.startswith("/api/v1/") and path != "/api/v1/info"
+    return configured_api_token() is not None and path.startswith("/api/v1/") and path != "/api/v1/info"
 
 
 def authorize_request(request: Request) -> bool:
