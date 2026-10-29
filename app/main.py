@@ -16,7 +16,7 @@ from app.schemas.media import MediaMetadata, MediaUploadResponse
 from app.schemas.media_search import MediaEvidenceSearchRequest, MediaEvidenceSearchResponse
 from app.schemas.search import EvidenceSearchRequest, EvidenceSearchResponse
 from app.schemas.transcription import TranscriptionResponse
-from app.services.document_ingestion import (
+from app.schemas.workflows import (\n    EvidenceComparisonResponse,\n    EvidenceWorkflowRequest,\n    ReportDraftRequest,\n    ReportDraftResponse,\n)\nfrom app.services.document_ingestion import (
     InvalidDocumentError,
     OCRUnavailableError,
     get_document,
@@ -25,7 +25,7 @@ from app.services.document_ingestion import (
 from app.services.evidence_retrieval import search_evidence
 from app.services.media_ingestion import InvalidMediaError, get_media_metadata, ingest_media
 from app.services.media_evidence_search import search_media_evidence
-from app.services.transcription import (
+from app.services.evidence_workflows import compare_evidence, draft_report\nfrom app.services.transcription import (
     TranscriptionFailedError,
     TranscriptionUnavailableError,
     get_transcript,
@@ -254,6 +254,45 @@ def read_saved_transcript(media_id: str) -> TranscriptionResponse:
     if result is None:
         raise HTTPException(status_code=404, detail="Transcript not found. Transcribe the media first.")
     return TranscriptionResponse.model_validate(result)
+
+
+@app.post(
+    "/api/v1/evidence/compare",
+    response_model=EvidenceComparisonResponse,
+    tags=["evidence workflows"],
+    summary="Compare retrieved document and audio/video evidence",
+)
+def compare_retrieved_evidence(request: EvidenceWorkflowRequest) -> EvidenceComparisonResponse:
+    """Retrieve evidence from both modalities and organize it for human comparison.
+
+    The endpoint reports evidence coverage, not truth or source agreement.
+    Conflicts must be assessed by a reviewer using the cited original sources.
+    """
+    result = compare_evidence(
+        query=request.query,
+        top_k=request.top_k,
+        document_query=request.document_query,
+        media_query=request.media_query,
+    )
+    return EvidenceComparisonResponse.model_validate(result)
+
+
+@app.post(
+    "/api/v1/reports/draft",
+    response_model=ReportDraftResponse,
+    tags=["evidence workflows"],
+    summary="Draft a Markdown report with source-linked evidence",
+)
+def create_evidence_report_draft(request: ReportDraftRequest) -> ReportDraftResponse:
+    """Create a review-ready draft from retrieved passages; no unsupported facts are generated."""
+    result = draft_report(
+        title=request.title,
+        question=request.question,
+        top_k=request.top_k,
+        document_query=request.document_query,
+        media_query=request.media_query,
+    )
+    return ReportDraftResponse.model_validate(result)
 
 
 # Serve the lightweight same-origin browser workspace and its static assets.
