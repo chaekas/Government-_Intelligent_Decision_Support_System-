@@ -1,6 +1,6 @@
 # Government Intelligent Decision Support System (IDSS)
 Version: 0.1.0  
-Status: Foundation / Checkpoint 1
+Status: Checkpoint 7 implementation branch; automated test run pending
 
 ## 1. Purpose
 Build a practical, evidence-grounded decision-support platform for authorized public-sector staff. Users should be able to search and understand permitted government records, compare evidence, and prepare traceable reports. The platform supports human decisions; it does not autonomously make consequential government decisions.
@@ -79,3 +79,12 @@ When evidence is insufficient, the system should say so and request clarificatio
 - Settings can be overridden with environment variables.
 - Tests run without downloading AI models or using paid APIs.
 - No secrets or real government data are committed.
+
+
+## 10. Checkpoint 7 workflow contract
+
+- `POST /api/v1/evidence/compare` searches the local document chunks and saved transcript segments independently, then returns grouped passages with source IDs and page/chunk or segment/timestamp provenance.
+- `POST /api/v1/reports/draft` assembles a Markdown draft from retrieved passages. Each included passage has a stable in-report evidence label and a source location; the draft includes reviewer actions and limitations.
+- Evidence coverage and truth assessment are separate. Results in both modalities mean both modalities returned matches, not that the sources agree. A reviewer must compare the original sources before marking a claim MATCH, PARTIAL, or CONFLICT.
+- Empty retrieval results must be described as “no matching evidence retrieved,” not as proof that evidence does not exist.
+- Scores are lexical ranking signals, not calibrated confidence or probabilities. Human review is mandatory before operational use.
