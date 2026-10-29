@@ -20,7 +20,7 @@ Build a practical, evidence-grounded decision-support platform for authorized pu
 - Configuration: YAML plus environment variables for deployment-specific settings.
 - Testing: pytest.
 - Initial metadata store: SQLite for local development; production storage requires a separate security and deployment review.
-- Frontend: React, TypeScript, and Next.js in a later checkpoint.
+- Frontend: current development workspace uses same-origin HTML, CSS, and JavaScript served by FastAPI; a larger React/TypeScript frontend may be introduced later if justified.
 - AI components: open-source/local-first models and libraries, introduced incrementally.
 - No paid commercial LLM API is required for the initial foundation. Mock/test mode must work without downloading model weights.
 
