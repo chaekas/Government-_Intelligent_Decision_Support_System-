@@ -1,10 +1,9 @@
-name: Checkpoint 1 tests
+name: IDSS test suite
 
 on:
   push:
-    branches: [main]
+    branches: [main, "checkpoint-*"]
   pull_request:
-    branches: [main]
 
 permissions:
   contents: read
