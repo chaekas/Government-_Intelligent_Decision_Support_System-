@@ -133,7 +133,7 @@ Use Swagger at `/docs` to submit a request such as:
 }
 ```
 
-The endpoint reads only saved JSON transcripts under `data/transcripts/`; malformed transcript files are skipped. No remote search API is used. The endpoint has no authentication or record-level authorization, so use synthetic/non-sensitive test media only.
+The endpoint reads only saved JSON transcripts under `data/transcripts/`; malformed transcript files are skipped. No remote search API is used. If `IDSS_API_TOKEN` is configured, the endpoint requires a bearer token; record-level authorization is not implemented, so use synthetic/non-sensitive test media only.
 
 
 ## Checkpoint 6: web frontend
@@ -147,7 +147,7 @@ Checkpoint 6 adds a lightweight, responsive browser workspace served by the same
 - Optional local transcription using the existing Checkpoint 5B endpoint, with English/Swahili hints or auto-detection.
 - Timestamped transcript evidence search with media IDs and segment references.
 
-The browser communicates with the API on the same origin and does not require a separate frontend build or paid service. The first transcription may download model weights and can be slow on CPU. The UI reports API errors and displays an explicit no-results message; lexical scores are not probabilities. As with the API, the workspace has no authentication or record-level authorization. Use synthetic/non-sensitive data only and review source documents or recordings before relying on any evidence.
+The browser communicates with the API on the same origin and does not require a separate frontend build or paid service. The first transcription may download model weights and can be slow on CPU. The UI reports API errors and displays an explicit no-results message; lexical scores are not probabilities. API bearer-token protection is enabled only when `IDSS_API_TOKEN` is configured; the workspace does not provide secure token entry. Record-level authorization is not implemented. Use synthetic/non-sensitive data only and review source documents or recordings before relying on any evidence.
 
 
 ## Checkpoint 7: evidence comparison and report workflows
@@ -180,7 +180,7 @@ Example report request:
 
 These endpoints organize retrieved passages; they do not decide whether two sources agree, prove a claim, or generate unsupported findings. When both modalities return results, the assessment remains `UNCERTAIN` until a human reviewer compares the source context. If only one modality returns results, the response uses `SINGLE_MODALITY`. No results means only that the current retrieval process found no matching passages, not that evidence does not exist. Scores are heuristic ranking signals, not probabilities. Verify quotations against original files and recordings before relying on a draft. The report is a working draft, not a final decision or recommendation.
 
-Use synthetic/non-sensitive data only. Authentication and record-level authorization are not implemented.
+Use synthetic/non-sensitive data only. Optional shared-token authentication is described in Checkpoint 8; record-level authorization is not implemented.
 
 ## Checkpoint 8: security and evaluation
 
