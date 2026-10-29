@@ -2,10 +2,10 @@
 
 An open-source, local-first foundation for evidence-grounded government decision support. The system is intended to help authorized staff search, compare, and summarize permitted records while keeping human decision-makers in control.
 
-> **Development status:** Checkpoints 1–4 are implemented; Checkpoint 5A adds audio/video upload validation; Checkpoint 5B adds local Whisper transcription; Checkpoint 5C adds timestamp-aware transcript search. This is not a production-ready government system. Do not upload real government records, personal data, credentials, or other sensitive information to this public repository or its development server.
+> **Development status:** Checkpoints 1–4 provide the API and document evidence search; Checkpoints 5A–5C add audio/video upload, optional local transcription, and timestamped transcript search; Checkpoint 6 adds a same-origin browser workspace at `/ui`. This is not a production-ready government system. Do not upload real government records, personal data, credentials, or other sensitive information to this public repository or its development server.
 
 ## Project goals
-- Process text, PDFs, scanned PDFs, images, and (Checkpoint 5A) validate/store WAV, MP3, M4A, and MP4 uploads; transcription is planned for a later checkpoint.
+- Process text, PDFs, scanned PDFs, images, and validate/store WAV, MP3, M4A, and MP4 uploads, with optional local transcription and timestamped transcript search.
 - Ground retrieval and future reports in traceable evidence, including page or timestamp references when available.
 - Communicate conflicting or insufficient evidence rather than inventing facts.
 - Plan for English and Swahili support, with quality to be evaluated.
@@ -19,9 +19,11 @@ An open-source, local-first foundation for evidence-grounded government decision
 - `app/services/document_ingestion.py` — local text/PDF/image extraction, OCR integration, chunking, and provenance.
 - `app/services/evidence_retrieval.py` — deterministic local keyword retrieval over stored chunks.
 - `app/services/media_ingestion.py` — basic audio/video signature validation and local metadata persistence.
-- `app/services/transcription.py` — local speech-to-text using faster-whisper, with timestamped segments and saved transcripts.\n- `app/services/media_evidence_search.py` — local lexical search across saved transcript segments with timestamp provenance.
+- `app/services/transcription.py` — local speech-to-text using faster-whisper, with timestamped segments and saved transcripts.
+- `app/services/media_evidence_search.py` — local lexical search across saved transcript segments with timestamp provenance.
 - `app/schemas/` — API request and response schemas.
-- `tests/` — automated foundation, API, ingestion, and search tests.
+- `app/static/` — browser workspace HTML, CSS, and JavaScript.
+- `tests/` — automated foundation, API, ingestion, search, and frontend tests.
 
 ## Local setup
 Requires Python 3.12 or newer compatible with the dependencies. A virtual environment is recommended.
@@ -33,7 +35,7 @@ python -m venv .venv
 Activate the environment:
 
 - macOS/Linux: `source .venv/bin/activate`
-- Windows PowerShell: `.venv\\Scripts\\Activate.ps1`
+- Windows PowerShell: `.venv\Scripts\Activate.ps1`
 
 Install dependencies and run the tests:
 
@@ -128,6 +130,20 @@ Use Swagger at `/docs` to submit a request such as:
 ```
 
 The endpoint reads only saved JSON transcripts under `data/transcripts/`; malformed transcript files are skipped. No remote search API is used. The endpoint has no authentication or record-level authorization, so use synthetic/non-sensitive test media only.
+
+
+## Checkpoint 6: web frontend
+
+Checkpoint 6 adds a lightweight, responsive browser workspace served by the same FastAPI application. Open `/` or `/ui` on the local server or the forwarded Codespaces port-8000 URL. The page links to API documentation at `/docs` and includes:
+
+- API health status.
+- Document upload and extraction for TXT, PDF, PNG, JPG, and JPEG.
+- Document evidence search with page, chunk, matched-term, and score provenance.
+- Audio/video upload for WAV, MP3, M4A, and MP4.
+- Optional local transcription using the existing Checkpoint 5B endpoint, with English/Swahili hints or auto-detection.
+- Timestamped transcript evidence search with media IDs and segment references.
+
+The browser communicates with the API on the same origin and does not require a separate frontend build or paid service. The first transcription may download model weights and can be slow on CPU. The UI reports API errors and displays an explicit no-results message; lexical scores are not probabilities. As with the API, the workspace has no authentication or record-level authorization. Use synthetic/non-sensitive data only and review source documents or recordings before relying on any evidence.
 
 ## Local data and limitations
 

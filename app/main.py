@@ -2,6 +2,9 @@
 from __future__ import annotations
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 from fastapi.middleware.cors import CORSMiddleware
 import re
 
@@ -251,3 +254,20 @@ def read_saved_transcript(media_id: str) -> TranscriptionResponse:
     if result is None:
         raise HTTPException(status_code=404, detail="Transcript not found. Transcribe the media first.")
     return TranscriptionResponse.model_validate(result)
+
+
+# Serve the lightweight same-origin browser workspace and its static assets.
+STATIC_DIR = Path(__file__).resolve().parent / "static"
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+
+@app.get("/", include_in_schema=False)
+def workspace_home() -> RedirectResponse:
+    """Send the browser root to the web workspace."""
+    return RedirectResponse(url="/ui")
+
+
+@app.get("/ui", include_in_schema=False)
+def workspace_page() -> FileResponse:
+    """Serve the single-page evidence workspace."""
+    return FileResponse(STATIC_DIR / "index.html")
