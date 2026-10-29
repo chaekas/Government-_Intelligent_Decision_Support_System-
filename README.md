@@ -19,9 +19,11 @@ An open-source, local-first foundation for evidence-grounded government decision
 - `app/services/document_ingestion.py` — local text/PDF/image extraction, OCR integration, chunking, and provenance.
 - `app/services/evidence_retrieval.py` — deterministic local keyword retrieval over stored chunks.
 - `app/services/media_ingestion.py` — basic audio/video signature validation and local metadata persistence.
-- `app/services/transcription.py` — local speech-to-text using faster-whisper, with timestamped segments and saved transcripts.\n- `app/services/media_evidence_search.py` — local lexical search across saved transcript segments with timestamp provenance.
+- `app/services/transcription.py` — local speech-to-text using faster-whisper, with timestamped segments and saved transcripts.
+- `app/services/media_evidence_search.py` — local lexical search across saved transcript segments with timestamp provenance.
 - `app/schemas/` — API request and response schemas.
-- `tests/` — automated foundation, API, ingestion, and search tests.
+- `app/static/` — browser workspace HTML, CSS, and JavaScript.
+- `tests/` — automated foundation, API, ingestion, search, and frontend tests.
 
 ## Local setup
 Requires Python 3.12 or newer compatible with the dependencies. A virtual environment is recommended.
@@ -33,7 +35,7 @@ python -m venv .venv
 Activate the environment:
 
 - macOS/Linux: `source .venv/bin/activate`
-- Windows PowerShell: `.venv\\Scripts\\Activate.ps1`
+- Windows PowerShell: `.venv\Scripts\Activate.ps1`
 
 Install dependencies and run the tests:
 
