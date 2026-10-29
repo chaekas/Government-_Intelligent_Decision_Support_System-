@@ -2,7 +2,7 @@
 
 An open-source, local-first foundation for evidence-grounded government decision support. The system is intended to help authorized staff search, compare, and summarize permitted records while keeping human decision-makers in control.
 
-> **Development status:** Checkpoints 1–4 are implemented; Checkpoint 5A adds audio/video upload validation; Checkpoint 5B adds local Whisper transcription; Checkpoint 5C adds timestamp-aware transcript search. This is not a production-ready government system. Do not upload real government records, personal data, credentials, or other sensitive information to this public repository or its development server.
+> **Development status:** Checkpoints 1–4 are implemented; Checkpoint 5A adds audio/video upload validation; Checkpoint 5B adds local Whisper transcription; Checkpoint 5C adds timestamp-aware transcript search. Checkpoint 6 adds a same-origin browser workspace at `/ui`. This is not a production-ready government system. Do not upload real government records, personal data, credentials, or other sensitive information to this public repository or its development server.
 
 ## Project goals
 - Process text, PDFs, scanned PDFs, images, and (Checkpoint 5A) validate/store WAV, MP3, M4A, and MP4 uploads; transcription is planned for a later checkpoint.
@@ -128,6 +128,20 @@ Use Swagger at `/docs` to submit a request such as:
 ```
 
 The endpoint reads only saved JSON transcripts under `data/transcripts/`; malformed transcript files are skipped. No remote search API is used. The endpoint has no authentication or record-level authorization, so use synthetic/non-sensitive test media only.
+
+
+## Checkpoint 6: web frontend
+
+Checkpoint 6 adds a lightweight, responsive browser workspace served by the same FastAPI application. Open `/` or `/ui` on the local server or the forwarded Codespaces port-8000 URL. The page links to API documentation at `/docs` and includes:
+
+- API health status.
+- Document upload and extraction for TXT, PDF, PNG, JPG, and JPEG.
+- Document evidence search with page, chunk, matched-term, and score provenance.
+- Audio/video upload for WAV, MP3, M4A, and MP4.
+- Optional local transcription using the existing Checkpoint 5B endpoint, with English/Swahili hints or auto-detection.
+- Timestamped transcript evidence search with media IDs and segment references.
+
+The browser communicates with the API on the same origin and does not require a separate frontend build or paid service. The first transcription may download model weights and can be slow on CPU. The UI reports API errors and displays an explicit no-results message; lexical scores are not probabilities. As with the API, the workspace has no authentication or record-level authorization. Use synthetic/non-sensitive data only and review source documents or recordings before relying on any evidence.
 
 ## Local data and limitations
 
