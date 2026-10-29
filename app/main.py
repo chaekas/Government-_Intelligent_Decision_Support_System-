@@ -16,7 +16,13 @@ from app.schemas.media import MediaMetadata, MediaUploadResponse
 from app.schemas.media_search import MediaEvidenceSearchRequest, MediaEvidenceSearchResponse
 from app.schemas.search import EvidenceSearchRequest, EvidenceSearchResponse
 from app.schemas.transcription import TranscriptionResponse
-from app.schemas.workflows import (\n    EvidenceComparisonResponse,\n    EvidenceWorkflowRequest,\n    ReportDraftRequest,\n    ReportDraftResponse,\n)\nfrom app.services.document_ingestion import (
+from app.schemas.workflows import (
+    EvidenceComparisonResponse,
+    EvidenceWorkflowRequest,
+    ReportDraftRequest,
+    ReportDraftResponse,
+)
+from app.services.document_ingestion import (
     InvalidDocumentError,
     OCRUnavailableError,
     get_document,
@@ -25,7 +31,8 @@ from app.schemas.workflows import (\n    EvidenceComparisonResponse,\n    Eviden
 from app.services.evidence_retrieval import search_evidence
 from app.services.media_ingestion import InvalidMediaError, get_media_metadata, ingest_media
 from app.services.media_evidence_search import search_media_evidence
-from app.services.evidence_workflows import compare_evidence, draft_report\nfrom app.services.transcription import (
+from app.services.evidence_workflows import compare_evidence, draft_report
+from app.services.transcription import (
     TranscriptionFailedError,
     TranscriptionUnavailableError,
     get_transcript,
